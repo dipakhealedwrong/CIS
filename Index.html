@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Playfair Cipher Simulator</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--tx:#1b1f2a;--mut:#667085;--bd:#dfe3ee;--ac:#4f46e5;--a:#fde68a;--o:#a7f3d0;--ok:#047857;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1220;--card:#181c2e;--tx:#e8eaf3;--mut:#9aa3b8;--bd:#2a3050;--ac:#818cf8;--a:#7a5c00;--o:#065f46;--ok:#34d399;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1220;--card:#181c2e;--tx:#e8eaf3;--mut:#9aa3b8;--bd:#2a3050;--ac:#818cf8;--a:#7a5c00;--o:#065f46;--ok:#34d399;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:18px}
+h1{font-size:1.5rem;margin:0 0 4px}
+.sub{color:var(--mut);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
+.card h2{font-size:1rem;margin:0 0 10px}
+label{display:block;font-size:.8rem;color:var(--mut);margin:8px 0 3px}
+input[type=text],textarea{width:100%;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.05em}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+button{border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 12px;border-radius:8px;font:inherit;cursor:pointer}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+button.on{background:var(--ac);color:#fff}
+button:disabled{opacity:.4;cursor:default}
+.mx{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;max-width:300px;margin:0 auto}
+.c{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:8px;font:600 1.3rem ui-monospace,Menlo,Consolas,monospace;position:relative;transition:background .2s}
+.c.k{border-color:var(--ac)}
+.c.a{background:var(--a)}
+.c.o{background:var(--o)}
+.c.a.o{background:linear-gradient(135deg,var(--a) 50%,var(--o) 50%)}
+.leg{font-size:.78rem;color:var(--mut);text-align:center;margin-top:8px}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin:0 3px 0 8px;border:1px solid var(--bd)}
+.pairs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.pr{font:600 1rem ui-monospace,Menlo,Consolas,monospace;padding:4px 8px;border:1px solid var(--bd);border-radius:8px;cursor:pointer;background:var(--bg)}
+.pr.cur{border-color:var(--ac);outline:2px solid var(--ac)}
+.pr small{display:block;font-size:.7rem;color:var(--ok);text-align:center}
+.exp{background:var(--bg);border-radius:8px;padding:10px;min-height:64px}
+.out{font:600 1.15rem ui-monospace,Menlo,Consolas,monospace;word-break:break-all;color:var(--ok)}
+.err{color:#dc2626;font-size:.85rem;margin-top:6px}
+.wide{grid-column:1/-1}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.85rem}
+th,td{border-bottom:1px solid var(--bd);padding:5px 8px;text-align:left;white-space:nowrap}
+th{color:var(--mut);font-weight:600}
+.note{font-size:.82rem;color:var(--mut)}
+html:root:not(.z){--bg:#070914;--card:rgba(20,24,48,.62);--tx:#e9ecff;--mut:#9aa6d0;--bd:rgba(120,140,255,.28);--ac:#a855f7;--ok:#5eead4;color-scheme:dark}
+body{background:radial-gradient(1200px 700px at 15% -10%,#2b1459 0,transparent 60%),radial-gradient(900px 600px at 100% 10%,#082f49 0,transparent 55%),var(--bg);background-attachment:fixed;overflow-x:hidden}
+#bg{position:fixed;inset:0;z-index:-1;opacity:.5}
+main{position:relative}
+h1{font-size:clamp(1.8rem,5vw,2.8rem);font-weight:800;background:linear-gradient(90deg,#22d3ee,#a855f7,#f472b6,#22d3ee);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:flow 6s linear infinite;filter:drop-shadow(0 0 14px rgba(168,85,247,.55))}
+@keyframes flow{to{background-position:300% 0}}
+.card{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:0;border-radius:16px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.45);transition:transform .15s ease-out,box-shadow .3s;animation:rise .7s cubic-bezier(.2,.8,.2,1) backwards}
+.card:hover{box-shadow:0 0 34px rgba(168,85,247,.38),0 10px 40px rgba(0,0,0,.45)}
+.grid>.card:nth-child(2){animation-delay:.12s}.grid>.card:nth-child(3){animation-delay:.24s}.grid>.card:nth-child(4){animation-delay:.36s}
+@keyframes rise{from{opacity:0;transform:translateY(40px) scale(.96)}}
+.card::before{content:"";position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(120deg,#22d3ee,#a855f7,#f472b6,#22d3ee);background-size:300% 300%;animation:flow2 5s linear infinite;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.75}
+@keyframes flow2{to{background-position:300% 300%}}
+button{transition:.2s;background:rgba(255,255,255,.06)}
+button:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 0 18px rgba(168,85,247,.6)}
+button.p,button.on{background:linear-gradient(135deg,#7c3aed,#06b6d4);border:0;color:#fff}
+button.p{animation:glow 2s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 24px rgba(6,182,212,.85)}}
+input[type=text],textarea{background:rgba(0,0,0,.35);transition:.2s}
+input:focus,textarea:focus{outline:0;border-color:#22d3ee;box-shadow:0 0 14px rgba(34,211,238,.5)}
+.c{background:rgba(255,255,255,.04);color:#c7d2fe;font-size:1.4rem;text-shadow:0 0 8px currentColor}
+.c.k{color:#67e8f9;box-shadow:inset 0 0 10px rgba(34,211,238,.4)}
+.c.a{background:#f59e0b;color:#1a1100;text-shadow:none;box-shadow:0 0 22px #f59e0b;animation:pulse .9s ease-in-out infinite;z-index:1}
+.c.o{background:#10b981;color:#02140d;text-shadow:none;box-shadow:0 0 26px #10b981;animation:flip .6s}
+.c.a.o{background:linear-gradient(135deg,#f59e0b 50%,#10b981 50%);color:#000}
+@keyframes pulse{50%{transform:scale(1.14)}}
+@keyframes flip{from{transform:rotateY(180deg) scale(.5)}}
+@keyframes pop{from{opacity:0;transform:scale(0) rotate(-180deg)}}
+.mx.pop .c{animation:pop .55s backwards;animation-delay:calc(var(--i)*30ms)}
+.pr{transition:.2s}.pr:hover{transform:translateY(-2px)}
+.pr.cur{box-shadow:0 0 18px var(--ac);transform:scale(1.12)}
+.exp{position:relative;background:rgba(0,0,0,.28);border:1px solid var(--bd)}
+.out{font-size:1.7rem;letter-spacing:.2em;text-shadow:0 0 14px var(--ok)}
+tr:hover td{background:rgba(168,85,247,.12)}
+.pt{position:absolute;left:50%;top:50%;width:8px;height:8px;border-radius:50%;pointer-events:none;animation:fly .9s ease-out forwards;z-index:5}
+@keyframes fly{to{transform:translate(var(--x),var(--y)) scale(0);opacity:0}}
+.sp{position:fixed;width:7px;height:7px;border-radius:50%;pointer-events:none;background:#22d3ee;box-shadow:0 0 10px #22d3ee,0 0 20px #a855f7;transform:translate(-50%,-50%);animation:fade .7s forwards;z-index:9}
+@keyframes fade{to{opacity:0;transform:translate(-50%,-50%) scale(0) translateY(14px)}}
+@media (prefers-reduced-motion:reduce){*,*::before{animation:none!important}#bg,.sp{display:none}}
+.hid{display:none!important}
+.tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.panel{display:none;grid-template-columns:1fr 1fr;gap:14px}
+.panel.on{display:grid}
+@media(max-width:720px){.panel.on{grid-template-columns:1fr}}
+.bars{display:flex;align-items:flex-end;gap:2px;height:110px;border-bottom:1px solid var(--bd)}
+.bars i{flex:1;border-radius:3px 3px 0 0;min-height:1px;transition:height .6s}
+.lab{display:flex;gap:2px;font-size:.58rem;color:var(--mut)}
+.lab span{flex:1;text-align:center}
+#ov{filter:drop-shadow(0 0 4px #a855f7)}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<main>
+<h1>Playfair Cipher Simulator</h1>
+<p class="sub">A digraph substitution cipher (Charles Wheatstone, 1854). Build the key square, split text into pairs, and watch each pair get transformed step by step.</p>
+
+<div class='tabs'><button class='on' data-t='sim' onclick="tab('sim')">🔐 Simulator</button><button data-t='an' onclick="tab('an')">📊 Analysis</button><button data-t='at' onclick="tab('at')">💥 Attack lab</button><button data-t='pr' onclick="tab('pr')">🎯 Practice</button></div>
+<div class="grid" id="t-sim">
+<section class="card">
+<h2>1 · Inputs</h2>
+<div class="row" style="margin-top:0">
+<button id="bE" class="on">Encrypt</button><button id="bD">Decrypt</button>
+</div>
+<label for="key">Keyword</label>
+<input type="text" id="key" value="MONARCHY" autocomplete="off" spellcheck="false">
+<label for="txt" id="tl">Plaintext</label>
+<textarea id="txt" rows="3" spellcheck="false">Instruments</textarea>
+<div class="row">
+<button class="p" id="run">Run simulation</button>
+<button id="ex">Classic example</button><button id='rk'>🎲 Random key</button><button id='cp'>📋 Copy result</button><button id='sn'>🔇 Sound off</button>
+</div>
+<div class="err" id="err"></div>
+<p class="note">Rules: letters only, J is merged into I, repeated letters in a pair get an X inserted, an odd leftover gets a trailing X.</p>
+</section>
+
+<section class="card">
+<h2>2 · 5×5 key square</h2>
+<div style='position:relative;max-width:300px;margin:0 auto'><div class="mx" id="mx"></div><svg id='ov' style='position:absolute;inset:0;width:100%;height:100%;pointer-events:none'></svg></div>
+<div class="leg"><span class="sw" style="background:var(--a)"></span>input pair<span class="sw" style="background:var(--o)"></span>output pair<span class="sw" style="border-color:var(--ac)"></span>keyword letter</div>
+</section>
+
+<section class="card wide">
+<h2>3 · Digraph processing</h2>
+<div class="note" id="prep"></div>
+<div class="pairs" id="pairs"></div>
+<div class="exp" id="exp">Press “Run simulation” to begin.</div>
+<div class="row">
+<button id="first">⏮</button><button id="prev">◀ Prev</button><button id="next">Next ▶</button><button id="play">▶ Auto-play</button>
+<span class="note" id="cnt"></span>
+</div>
+</section>
+
+<section class="card wide">
+<h2>4 · Result</h2>
+<div class="note" id="rl">Output</div>
+<div class="out" id="res">—</div>
+<div class="tbl"><table id="tb"></table></div>
+<p class="note" id="foot"></p>
+</section>
+</div>
+<div class='panel' id='t-an'>
+<section class='card'><h2>Letter frequency · plaintext</h2><div class='bars' id='f1'></div><div class='lab' id='l1'></div><h2 style='margin-top:14px'>Letter frequency · ciphertext</h2><div class='bars' id='f2'></div><div class='lab' id='l2'></div><p class='note'>English has tall spikes (E, T, A). Playfair flattens single letters, but not digraphs.</p></section>
+<section class='card'><h2>Statistics from the last run</h2><div id='an'>Run the simulator first.</div></section>
+<section class='card wide'><h2>Key space and security</h2><p>The key square can be arranged in 25! ≈ 1.55 × 10²⁵ ways (about 2⁸⁴). At a billion keys per second, exhausting that space takes roughly 490 million years. But real keywords come from a tiny set of memorable words, and digraph statistics let an attacker skip brute force entirely, so Playfair is not secure today. Compare this with AES-128, which has 2¹²⁸ keys and no known structural shortcut.</p></section>
+</div>
+<div class='panel' id='t-at'>
+<section class='card'><h2>Dictionary attack</h2><p class='note'>Try every candidate keyword, decrypt, and score the result by how English-like it is (common bigrams and trigrams).</p><label>Ciphertext</label><textarea id='act' rows='2'>GATLMZCLRQXA</textarea><label>Candidate keywords (editable)</label><textarea id='awl' rows='4'></textarea><div class='row'><button class='p' id='atk'>Launch attack</button><button id='uc'>Use current ciphertext</button></div><div style='height:6px;background:var(--bd);border-radius:4px;margin-top:10px'><div id='apg' style='height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#a855f7);border-radius:4px'></div></div></section>
+<section class='card'><h2>Ranked results</h2><div class='tbl'><table id='ar'></table></div><p class='note' id='am'>Scores are noisy on short ciphertext; longer text separates the true key more clearly.</p></section>
+</div>
+<div class='panel' id='t-pr'>
+<section class='card'><h2>Practice mode</h2><div class='exp' id='pq'></div><div class='row'><button id='ph'>💡 Hint</button><button id='pn' class='p'>Next question</button><span class='note' id='ps'>Score 0/0</span></div><div class='exp' id='pf' style='margin-top:10px'>Click the two letters that form the output pair.</div></section>
+<section class='card'><h2>Key square</h2><div class='mx' id='pmx'></div></section>
+</div>
+</main>
+<script>
+const ALPHA="ABCDEFGHIKLMNOPQRSTUVWXYZ";
+const $=id=>document.getElementById(id);
+let mode=1,M=[],pos={},steps=[],cur=0,timer=null,keyset=new Set();
+
+function build(k){
+  const s=(k.toUpperCase().replace(/J/g,"I").replace(/[^A-Z]/g,"")+ALPHA);
+  const seen=new Set(),arr=[];
+  for(const ch of s){if(!seen.has(ch)){seen.add(ch);arr.push(ch)}}
+  keyset=new Set(k.toUpperCase().replace(/J/g,"I").replace(/[^A-Z]/g,""));
+  M=arr;pos={};arr.forEach((ch,i)=>pos[ch]=[Math.floor(i/5),i%5]);
+}
+function clean(t){return t.toUpperCase().replace(/J/g,"I").replace(/[^A-Z]/g,"")}
+function toPairs(c){
+  const p=[];let i=0,notes=[];
+  while(i<c.length){
+    const a=c[i];let b=c[i+1];
+    if(b===undefined){b=a==="X"?"Q":"X";notes.push(`odd length → padded “${a}” with X`);p.push([a,b]);i++}
+    else if(a===b){const f=a==="X"?"Q":"X";notes.push(`double “${a}${a}” → inserted ${f}`);p.push([a,f]);i++}
+    else{p.push([a,b]);i+=2}
+  }
+  return {p,notes};
+}
+function tf(a,b,d){
+  const [r1,c1]=pos[a],[r2,c2]=pos[b];let x,y,rule,why;
+  const at=(r,c)=>M[((r+5)%5)*5+((c+5)%5)];
+  if(r1===r2){x=at(r1,c1+d);y=at(r2,c2+d);rule="Same row";why=`Take the letter to the ${d>0?"right":"left"} of each (wrapping around): ${a}→${x}, ${b}→${y}.`}
+  else if(c1===c2){x=at(r1+d,c1);y=at(r2+d,c2);rule="Same column";why=`Take the letter ${d>0?"below":"above"} each (wrapping around): ${a}→${x}, ${b}→${y}.`}
+  else{x=at(r1,c2);y=at(r2,c1);rule="Rectangle";why=`Each letter swaps to the corner in its own row but the other letter’s column: ${a}→${x}, ${b}→${y}.`}
+  return {x,y,rule,why};
+}
+function drawMatrix(a,b,x,y){
+  $("mx").innerHTML=M.map((ch,i)=>`<div style="--i:${i}" class="c${keyset.has(ch)?" k":""}${ch===a||ch===b?" a":""}${ch===x||ch===y?" o":""}">${ch}</div>`).join("");
+}
+function run(){
+  stop();$("err").textContent="";
+  const key=clean($("key").value);
+  if(!key){$("err").textContent="Enter a keyword containing at least one letter.";return}
+  build(key);
+  const c=clean($("txt").value);
+  if(!c){$("err").textContent="Enter some text containing letters.";drawMatrix();return}
+  let p,notes=[];
+  if(mode===1){const r=toPairs(c);p=r.p;notes=r.notes}
+  else{
+    if(c.length%2){$("err").textContent="Ciphertext must have an even number of letters.";return}
+    p=[];for(let i=0;i<c.length;i+=2){
+      if(c[i]===c[i+1]){$("err").textContent="Invalid ciphertext: a pair has two identical letters.";return}
+      p.push([c[i],c[i+1]])}
+  }
+  steps=p.map(([a,b])=>({a,b,...tf(a,b,mode)}));
+  cur=0;
+  $("prep").innerHTML=`<b>Prepared text:</b> ${c} &nbsp;|&nbsp; <b>Pairs:</b> ${p.map(q=>q.join("")).join(" ")}${notes.length?"<br>"+notes.join("; "):""}`;
+  $("rl").textContent=mode===1?"Ciphertext":"Recovered plaintext (remove padding X manually)";
+  scr($("res"),steps.map(s=>s.x+s.y).join(""));$("mx").classList.add("pop");refreshAn();setTimeout(()=>$("mx").classList.remove("pop"),1200);
+  $("tb").innerHTML="<tr><th>#</th><th>Pair</th><th>Rule</th><th>Output</th></tr>"+steps.map((s,i)=>`<tr><td>${i+1}</td><td>${s.a}${s.b}</td><td>${s.rule}</td><td>${s.x}${s.y}</td></tr>`).join("");
+  $("foot").textContent=mode===1?"Decrypt by shifting left/up instead of right/down; the rectangle rule is its own inverse.":"The inserted X/Q padding letters may remain in the recovered text.";
+  show();
+}
+function show(){
+  if(!steps.length)return;
+  $("pairs").innerHTML=steps.map((s,i)=>`<div class="pr${i===cur?" cur":""}" onclick="go(${i})">${s.a}${s.b}<small>${i<=cur?s.x+s.y:"··"}</small></div>`).join("");
+  const s=steps[cur];
+  drawMatrix(s.a,s.b,s.x,s.y);
+  const [r1,c1]=pos[s.a],[r2,c2]=pos[s.b];
+  $("exp").innerHTML=`<b>Pair ${cur+1}: ${s.a}${s.b}</b> — ${s.a} at (row ${r1+1}, col ${c1+1}), ${s.b} at (row ${r2+1}, col ${c2+1}).<br><b>${s.rule} rule.</b> ${s.why}<br><b>Output pair: ${s.x}${s.y}</b>`;
+  $("cnt").textContent=`Step ${cur+1} of ${steps.length}`;lines(s);beep(s);
+  $("prev").disabled=$("first").disabled=cur===0;
+  $("next").disabled=cur===steps.length-1;
+  if(cur===steps.length-1&&steps.length>1)burst();
+}
+function go(i){cur=i;show()}
+function stop(){clearInterval(timer);timer=null;$("play").textContent="▶ Auto-play"}
+function setMode(m){
+  mode=m;stop();
+  $("bE").classList.toggle("on",m===1);$("bD").classList.toggle("on",m===-1);
+  $("tl").textContent=m===1?"Plaintext":"Ciphertext";
+  if(m===-1&&steps.length)$("txt").value=steps.map(s=>s.x+s.y).join("");
+  run();
+}
+$("bE").onclick=()=>{if(mode!==1){$("txt").value="Instruments"}setMode(1)};
+$("bD").onclick=()=>setMode(-1);
+$("run").onclick=run;
+$("ex").onclick=()=>{$("key").value="MONARCHY";$("txt").value=mode===1?"Instruments":"GATLMZCLRQXA";run()};
+$("next").onclick=()=>{if(cur<steps.length-1){cur++;show()}};
+$("prev").onclick=()=>{if(cur>0){cur--;show()}};
+$("first").onclick=()=>{cur=0;show()};
+$("play").onclick=()=>{
+  if(timer){stop();return}
+  if(cur>=steps.length-1)cur=0;
+  show();$("play").textContent="⏸ Pause";
+  timer=setInterval(()=>{if(cur<steps.length-1){cur++;show()}else stop()},1400);
+};
+["key","txt"].forEach(i=>$(i).addEventListener("input",()=>{if($("err").textContent||steps.length)run()}));
+/* ---- advanced features ---- */
+const KW='MONARCHY PLAYFAIR SECRET KEYWORD CIPHER CRYPTO SECURITY PASSWORD NETWORK PRIVACY WHEATSTONE CRYPTOGRAPHY ENCRYPTION FIREWALL HACKER BLOCKCHAIN LIBERTY MYSTERY SHADOW UNIVERSITY ENGINEER PUNE MAHARASHTRA INFOSEC DEFENCE ANONYMOUS DIGITAL MATRIX BINARY ORACLE CASTLE FALCON TIGER JUNGLE GALAXY ROCKET'.split(' ');
+const TRI='THE AND ING ION ENT TIO FOR NDE HAS NCE TIS OFT MEN INS STR TER ERS RES ATE ALL ITH ONE OUR HER VER ANT EST ERE HIS THA'.split(' ');
+const BI='TH HE IN ER AN RE ON AT EN ND TI ES OR TE OF ED IS IT AL AR ST TO NT NG SE HA AS OU IO LE VE CO ME DE HI RI RO IC NE EA RA CE'.split(' ');
+const L26='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+let snd=false,AC,P={},sc=[0,0];
+function score(t){let s=0;for(let i=0;i<t.length-1;i++){if(BI.includes(t.substr(i,2)))s++;if(TRI.includes(t.substr(i,3)))s+=3}return s}
+function lines(s){const w=$('mx').parentNode.getBoundingClientRect(),cs=$('mx').children,C=l=>{const r=cs[M.indexOf(l)].getBoundingClientRect();return [r.left-w.left+r.width/2,r.top-w.top+r.height/2]},A=C(s.a),B=C(s.b),X=C(s.x),Y=C(s.y);
+$('ov').setAttribute('viewBox',`0 0 ${w.width} ${w.height}`);
+$('ov').innerHTML=`<defs><marker id='ah' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0L6,3L0,6z' fill='#34d399'/></marker></defs>`+(s.rule==='Rectangle'?`<polygon points='${A} ${X} ${B} ${Y}' fill='rgba(168,85,247,.14)' stroke='#a855f7' stroke-width='2' stroke-dasharray='5 4'/>`:`<line x1='${A[0]}' y1='${A[1]}' x2='${B[0]}' y2='${B[1]}' stroke='#f59e0b' stroke-width='2' stroke-dasharray='5 4'/>`)+[[A,X],[B,Y]].map(([p,q])=>`<line x1='${p[0]}' y1='${p[1]}' x2='${q[0]}' y2='${q[1]}' stroke='#34d399' stroke-width='3' marker-end='url(#ah)' opacity='.9'/>`).join('')}
+function beep(s){if(!snd)return;AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=300+({'Same row':0,'Same column':150,'Rectangle':300})[s.rule];g.gain.value=.05;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.12)}
+function bars(id,lid,t,c){const n=[...L26].map(l=>[...t].filter(x=>x===l).length),m=Math.max(1,...n);$(id).innerHTML=n.map((v,i)=>`<i title='${L26[i]}: ${v}' style='height:${v/m*100}%;background:${c}'></i>`).join('');$(lid).innerHTML=[...L26].map(l=>`<span>${l}</span>`).join('')}
+function ic(t){const N=t.length;if(N<2)return 0;let s=0;for(const l of L26){const n=[...t].filter(x=>x===l).length;s+=n*(n-1)}return s/(N*(N-1))}
+function topD(t){const m={};for(let i=0;i<t.length-1;i+=2){const d=t.substr(i,2);m[d]=(m[d]||0)+1}return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([d,n])=>`${d}×${n}`).join(', ')}
+function refreshAn(){if(!steps.length)return;const ins=steps.map(s=>s.a+s.b).join(''),outs=steps.map(s=>s.x+s.y).join(''),pt=mode===1?ins:outs,ct=mode===1?outs:ins,rc={};steps.forEach(s=>rc[s.rule]=(rc[s.rule]||0)+1);
+bars('f1','l1',pt,'linear-gradient(#22d3ee,#6366f1)');bars('f2','l2',ct,'linear-gradient(#f472b6,#a855f7)');
+$('an').innerHTML=`<p><b>Pairs:</b> ${steps.length} · <b>Letters:</b> ${pt.length}</p><p><b>Rules used:</b> ${Object.entries(rc).map(([k,v])=>`${k} ${v}`).join(' · ')}</p><p><b>Index of coincidence:</b> plaintext ${ic(pt).toFixed(3)} · ciphertext ${ic(ct).toFixed(3)}<br><span class='note'>English ≈ 0.066, uniform random ≈ 0.038. Short texts give noisy values.</span></p><p><b>Top digraphs:</b> plaintext ${topD(pt)} · ciphertext ${topD(ct)}<br><span class='note'>Equal plaintext pairs always give equal ciphertext pairs; digraph frequency analysis exploits exactly this.</span></p>`}
+async function attack(){const ct=clean($('act').value);if(!ct||ct.length%2){$('am').textContent='Ciphertext must be a non-empty, even-length string of letters.';return}
+const words=[...new Set($('awl').value.toUpperCase().split(/[^A-Z]+/).filter(Boolean))],sv=[M,pos,keyset],res=[];
+for(let i=0;i<words.length;i++){build(words[i]);let ok=true,out='';for(let j=0;j<ct.length;j+=2){const a=ct[j],b=ct[j+1];if(a===b){ok=false;break}const r=tf(a,b,-1);out+=r.x+r.y}
+if(ok)res.push({k:words[i],t:out,s:score(out)});
+if(i%8===0){$('apg').style.width=(i/words.length*100)+'%';await new Promise(r=>setTimeout(r,15))}}
+[M,pos,keyset]=sv;$('apg').style.width='100%';res.sort((x,y)=>y.s-x.s);
+$('ar').innerHTML='<tr><th>#</th><th>Key</th><th>Decrypted</th><th>Score</th></tr>'+res.slice(0,6).map((r,i)=>`<tr><td>${i+1}</td><td>${r.k}</td><td>${r.t}</td><td>${r.s}</td></tr>`).join('');
+$('am').textContent=res.length?`Tested ${words.length} keywords. Best guess: ${res[0].k}. If it reads as English the key was in the dictionary; if every result is gibberish the key was not in the list, which is why unpredictable keys matter.`:'No valid decryptions.'}
+function drawP(){$('pmx').innerHTML=M.map(ch=>`<div class='c${keyset.has(ch)?' k':''}${P.sel.includes(ch)?' a':''}${P.done&&(ch===P.r.x||ch===P.r.y)?' o':''}' data-l='${ch}' style='cursor:pointer'>${ch}</div>`).join('')}
+function newQ(){stop();const w=KW[Math.random()*KW.length|0];build(w);let a,b;do{a=ALPHA[Math.random()*25|0];b=ALPHA[Math.random()*25|0]}while(a===b);const d=Math.random()<.5?1:-1;P={a,b,d,r:tf(a,b,d),sel:[],done:false};$('pq').innerHTML=`Keyword <b>${w}</b> · <b>${d>0?'Encrypt':'Decrypt'}</b> the pair <b style='font-size:1.4rem;letter-spacing:.15em'>${a}${b}</b>`;$('pf').textContent='Click the two letters that form the output pair.';drawP()}
+function tab(n){stop();$('t-sim').classList.toggle('hid',n!=='sim');['an','at','pr'].forEach(k=>$('t-'+k).classList.toggle('on',k===n));document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===n));if(n==='sim')run();if(n==='pr')newQ();if(n==='an')refreshAn()}
+$('pmx').onclick=e=>{const l=e.target.dataset.l;if(!l||P.done||P.sel.includes(l))return;P.sel.push(l);if(P.sel.length===2){P.done=true;sc[1]++;const ok=P.sel.includes(P.r.x)&&P.sel.includes(P.r.y);if(ok)sc[0]++;$('pf').innerHTML=(ok?'✅ Correct. ':'❌ Not quite. ')+`<b>${P.r.rule}</b>: ${P.r.why}`;$('ps').textContent=`Score ${sc[0]}/${sc[1]}`}drawP()};
+$('ph').onclick=()=>{if(P.a&&!P.done)$('pf').textContent=`Hint: ${P.a} is at row ${pos[P.a][0]+1}, col ${pos[P.a][1]+1}; ${P.b} is at row ${pos[P.b][0]+1}, col ${pos[P.b][1]+1}. Which rule applies?`};
+$('pn').onclick=newQ;$('atk').onclick=attack;$('awl').value=KW.join(' ');
+$('uc').onclick=()=>{$('act').value=steps.map(s=>mode===1?s.x+s.y:s.a+s.b).join('')};
+$('rk').onclick=()=>{$('key').value=KW[Math.random()*KW.length|0];run()};
+$('cp').onclick=()=>{try{navigator.clipboard.writeText($('res').textContent)}catch(e){}};
+$('sn').onclick=()=>{snd=!snd;$('sn').textContent=snd?'🔊 Sound on':'🔇 Sound off'};
+/* ---- visual effects ---- */
+const cv=$("bg"),cx=cv.getContext("2d");let W,H,drops=[];
+function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;drops=Array.from({length:Math.ceil(W/18)},()=>Math.random()*H/18)}
+rs();addEventListener("resize",rs);
+(function rain(){cx.fillStyle="rgba(7,9,20,.14)";cx.fillRect(0,0,W,H);cx.font="16px monospace";
+  drops.forEach((y,i)=>{cx.fillStyle=Math.random()<.04?"#fff":"#22d3ee";cx.fillText(ALPHA[Math.random()*25|0],i*18,y*18);drops[i]=y*18>H&&Math.random()>.975?0:y+1});
+  requestAnimationFrame(rain)})();
+function scr(el,t){clearInterval(el._t);let n=0;el._t=setInterval(()=>{el.textContent=[...t].map((c,i)=>i<n?c:ALPHA[Math.random()*25|0]).join("");n+=.5;if(n>t.length){clearInterval(el._t);el.textContent=t}},35)}
+function burst(){for(let i=0;i<36;i++){const p=document.createElement("i"),a=Math.random()*6.28,d=80+Math.random()*180;p.className="pt";p.style.cssText=`--x:${Math.cos(a)*d}px;--y:${Math.sin(a)*d}px;background:hsl(${Math.random()*360} 90% 60%)`;$("exp").appendChild(p);setTimeout(()=>p.remove(),900)}}
+addEventListener("pointermove",e=>{if(Math.random()<.5)return;const s=document.createElement("i");s.className="sp";s.style.left=e.clientX+"px";s.style.top=e.clientY+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),700)});
+document.querySelectorAll(".card").forEach(c=>{c.addEventListener("pointermove",e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`perspective(900px) rotateY(${x*5}deg) rotateX(${-y*5}deg)`});c.addEventListener("pointerleave",()=>c.style.transform="")});
+run();
+</script>
+</body>
+</html>
